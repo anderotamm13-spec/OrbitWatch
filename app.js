@@ -496,3 +496,120 @@ function drawSun() {
     ctx.fillRect(548, 220, 22, 12);
 }
 
+function animate(){
+  drawSky();
+
+  /* About one rotation every ~3 minutes at 60 fps. */
+  state.rotation=(state.rotation+0.035)%360;
+
+  if(state.mode==="sun"){
+    drawSun();
+    drawSatellite();
+  }else{
+    drawEarth();
+    drawSatellite();
+
+    if(state.mode==="aurora"){
+      ctx.globalAlpha=.24;
+
+      for(let i=0;i<6;i++){
+        ctx.strokeStyle=i%2?"#b875ff":"#64ff9a";
+        ctx.beginPath();
+
+        for(let x=0;x<960;x+=12){
+          const y=75+i*10+Math.sin(x*.018+state.tick*.04+i)*18;
+          if(x===0)ctx.moveTo(x,y);
+          else ctx.lineTo(x,y);
+        }
+
+        ctx.stroke();
+      }
+
+      ctx.globalAlpha=1;
+    }
+  }
+
+  state.tick++;
+  requestAnimationFrame(animate);
+}
+
+/* ---------------- CHART + CONTROLS ---------------- */
+
+function drawChart(){
+  const w=chart.width,h=chart.height;
+
+  cctx.fillStyle="#050a16";
+  cctx.fillRect(0,0,w,h);
+
+  cctx.strokeStyle="#173047";
+
+  for(let k=0;k<=9;k+=3){
+    const y=h-20-k/9*(h-40);
+
+    cctx.beginPath();
+    cctx.moveTo(42,y);
+    cctx.lineTo(w-12,y);
+    cctx.stroke();
+
+    cctx.fillStyle="#6b8aa0";
+    cctx.font="16px monospace";
+    cctx.fillText(`Kp ${k}`,4,y+5);
+  }
+
+  const a=state.history.length?state.history:[{kp:0}];
+
+  cctx.strokeStyle="#47f7ff";
+  cctx.lineWidth=3;
+  cctx.beginPath();
+
+  a.forEach((p,i)=>{
+    const x=42+i/Math.max(1,a.length-1)*(w-60);
+    const y=h-20-Math.min(9,p.kp)/9*(h-40);
+
+    if(i===0)cctx.moveTo(x,y);
+    else cctx.lineTo(x,y);
+  });
+
+  cctx.stroke();
+}
+
+document.querySelectorAll(".tab").forEach(button=>{
+  button.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    button.classList.add("active");
+
+    state.mode=button.dataset.mode;
+    $("screenMode").textContent=`${state.mode.toUpperCase()} VIEW`;
+
+    log(`Display switched to ${state.mode.toUpperCase()}.`);
+  });
+});
+
+document.addEventListener("keydown",e=>{
+  if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;
+
+  const modes={1:"earth",2:"sun",3:"aurora",4:"satellite"};
+
+  if(modes[e.key]){
+    document.querySelector(`[data-mode="${modes[e.key]}"]`).click();
+  }
+});
+
+$("refreshBtn").addEventListener("click",()=>{
+  refreshSpace();
+  loadWeather();
+});
+
+setInterval(()=>{
+  $("utcTime").textContent=new Date().toISOString().slice(11,19);
+},1000);
+
+initStars();
+animate();
+refreshSpace();
+loadWeather();
+
+setInterval(()=>{
+  refreshSpace();
+  loadWeather();
+},5*60*1000);
