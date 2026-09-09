@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>OrbitWatch // Pocket Space Weather</title>
+
+    <meta
+        name="description"
+        content="OrbitWatch is a retro space-weather dashboard displaying live NOAA space weather and local weather data."
+    >
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<main class="shell">
+
+    <!-- ============================= -->
+    <!-- HEADER                        -->
+    <!-- ============================= -->
+
+    <header class="topbar">
+
+        <div>
+            <div class="eyebrow">
+                SAT-LINK // PLANETARY MONITOR
+            </div>
+
+            <h1>ORBITWATCH</h1>
+        </div>
+
+        <div class="signal">
+            <span id="signalDot"></span>
+            <span id="signalText">CONNECTING</span>
+        </div>
+
+    </header>
+
+
+    <!-- ============================= -->
+    <!-- LOCATION SEARCH               -->
+    <!-- ============================= -->
+
+    <section class="location panel">
+
+        <div>
+            <div class="tiny">
+                WEATHER LOCATION
+            </div>
+
+            <strong id="locationName">
+                Kuressaare, Estonia
+            </strong>
+        </div>
+
+
+        <form id="locationForm">
+
+            <input
+                id="locationInput"
+                type="text"
+                placeholder="Search city or postcode..."
+                autocomplete="off"
+                aria-label="Search weather location"
+            >
+
+            <button type="submit">
+                SEARCH
+            </button>
+
+        </form>
+
+
+        <div
+            id="locationResults"
+            class="results"
+            hidden
+        ></div>
+
+    </section>
+
+
+    <!-- ============================= -->
+    <!-- MAIN SPACE DISPLAY            -->
+    <!-- ============================= -->
+
+    <section class="screen">
+
+        <canvas
+            id="spaceCanvas"
+            width="960"
+            height="460"
+        ></canvas>
+
+        <div class="scanlines"></div>
+
+
+        <div
+            class="screen-label left"
+            id="screenMode"
+        >
+            EARTH VIEW
+        </div>
+
+
+        <div class="screen-label right">
+
+            <span id="utcTime">
+                --:--:--
+            </span>
+
+            UTC
+
+        </div>
+
+
+        <!-- SPACE TELEMETRY -->
+
+        <div class="telemetry">
+
+            <div>
+
+                <span>
+                    KP
+                </span>
+
+                <strong id="kpValue">
+                    --
+                </strong>
+
+                <small id="kpState">
+                    LOADING
+                </small>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    SOLAR WIND
+                </span>
+
+                <strong>
+                    <b id="windValue">--</b>
+                    km/s
+                </strong>
+
+                <small id="windState">
+                    LOADING
+                </small>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    Bz
+                </span>
+
+                <strong>
+                    <b id="bzValue">--</b>
+                    nT
+                </strong>
+
+                <small id="bzState">
+                    LOADING
+                </small>
+
+            </div>
+
+
+            <div>
+
+                <span>
+                    AURORA
+                </span>
+
+                <strong id="auroraValue">
+                    --
+                </strong>
+
+                <small id="auroraState">
+                    LOADING
+                </small>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ============================= -->
+    <!-- DISPLAY MODES                 -->
+    <!-- ============================= -->
+
+    <nav class="tabs">
+
+        <button
+            class="tab active"
+            data-mode="earth"
+            type="button"
+        >
+            [1] EARTH
+        </button>
+
+        <button
+            class="tab"
+            data-mode="sun"
+            type="button"
+        >
+            [2] SUN
+        </button>
+
+        <button
+            class="tab"
+            data-mode="aurora"
+            type="button"
+        >
+            [3] AURORA
+        </button>
+
+        <button
+            class="tab"
+            data-mode="satellite"
+            type="button"
+        >
+            [4] SATELLITE
+        </button>
+
+    </nav>
+
+
+    <!-- ============================= -->
+    <!-- LOCAL WEATHER                 -->
+    <!-- ============================= -->
+
+    <section class="weather-grid">
+
+
+        <!-- CURRENT WEATHER -->
+
+        <article class="panel">
+
+            <div class="panel-title">
+
+                <span>
+                    CURRENT WEATHER
+                </span>
+
+                <span
+                    class="tiny"
+                    id="weatherUpdated"
+                >
+                    WAITING
+                </span>
+
+            </div>
+
+
+            <div class="current-weather">
+
+
+                <div class="weather-main">
+
+                    <div
+                        class="weather-icon"
+                        id="currentWeatherIcon"
+                    >
+                        ?
+                    </div>
+
+
+                    <div>
+
+                        <div class="temperature">
+
+                            <span id="currentTemp">
+                                --
+                            </span>°C
+
+                        </div>
+
+                        <div
+                            id="currentWeatherText"
+                            class="muted"
+                        >
+                            Loading...
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="weather-stats">
+
+
+                    <div>
+
+                        <span>
+                            FEELS
+                        </span>
+
+                        <strong>
+
+                            <b id="feelsLike">
+                                --
+                            </b>°C
+
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            HUMIDITY
+                        </span>
+
+                        <strong>
+
+                            <b id="humidity">
+                                --
+                            </b>%
+
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            WIND
+                        </span>
+
+                        <strong>
+
+                            <b id="weatherWind">
+                                --
+                            </b>
+
+                            km/h
+
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            PRECIP
+                        </span>
+
+                        <strong>
+
+                            <b id="precipitation">
+                                --
+                            </b>
+
+                            mm
+
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </article>
+
+
+        <!-- 3 DAY FORECAST -->
+
+        <article class="panel">
+
+            <div class="panel-title">
+
+                <span>
+                    3-DAY FORECAST
+                </span>
+
+                <span class="tiny">
+                    OPEN-METEO
+                </span>
+
+            </div>
+
+
+            <div
+                id="forecastCards"
+                class="forecast-cards"
+            >
+
+                <div class="forecast-card">
+                    Loading forecast...
+                </div>
+
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <!-- ============================= -->
+    <!-- SPACE WEATHER DASHBOARD       -->
+    <!-- ============================= -->
+
+    <section class="dashboard-grid">
+
+
+        <!-- GEOMAGNETIC STATUS -->
+
+        <article class="panel">
+
+            <div class="panel-title">
+
+                <span>
+                    GEOMAGNETIC STATUS
+                </span>
+
+                <span class="tiny">
+                    NOAA SWPC
+                </span>
+
+            </div>
+
+
+            <div class="storm">
+
+                <div>
+
+                    <div
+                        class="mega"
+                        id="stormLevel"
+                    >
+                        ---
+                    </div>
+
+                    <div id="stormDesc">
+                        Waiting for telemetry...
+                    </div>
+
+                </div>
+
+
+                <div class="meter">
+
+                    <div id="kpMeter"></div>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="status-line"
+                id="statusLine"
+            >
+                Receiving telemetry packet...
+            </div>
+
+        </article>
+
+
+        <!-- MISSION LOG -->
+
+        <article class="panel">
+
+            <div class="panel-title">
+
+                <span>
+                    MISSION LOG
+                </span>
+
+                <button
+                    id="refreshBtn"
+                    type="button"
+                >
+                    REFRESH ALL
+                </button>
+
+            </div>
+
+
+            <div
+                id="log"
+                class="log"
+            ></div>
+
+        </article>
+
+
+        <!-- KP GRAPH -->
+
+        <article class="panel wide">
+
+            <div class="panel-title">
+
+                <span>
+                    24H KP TRACE
+                </span>
+
+                <span
+                    class="tiny"
+                    id="updatedAt"
+                >
+                    NOT SYNCED
+                </span>
+
+            </div>
+
+
+            <canvas
+                id="chartCanvas"
+                width="960"
+                height="180"
+            ></canvas>
+
+        </article>
+
+    </section>
+
+
+    <!-- ============================= -->
+    <!-- FOOTER                        -->
+    <!-- ============================= -->
+
+    <footer>
+
+        <span>
+            SPACE: NOAA SWPC // WEATHER: OPEN-METEO
+        </span>
+
+        <span>
+            ORBITWATCH v2.0
+        </span>
+
+    </footer>
+
+</main>
+
+
+<!--
+    app.js MUST stay at the bottom so all HTML elements
+    exist before JavaScript tries to access them.
+-->
+
+<script src="app.js"></script>
+
+</body>
+</html>
