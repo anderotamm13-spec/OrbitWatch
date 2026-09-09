@@ -14,7 +14,7 @@ url = f"http://localhost:{PORT}/index.html"
 
 server = ThreadingHTTPServer(
     ("localhost", PORT),
-        SimpleHTTPRequestHandler
+    SimpleHTTPRequestHandler
 )
 
 print(f"OrbitWatch running at {url}")
@@ -22,10 +22,15 @@ print("Press Ctrl+C to stop.")
 
 # Open the browser shortly after the server starts
 threading.Timer(
-        0.7,
-        lambda: webbrowser.open(url)
+    0.7,
+    lambda: webbrowser.open(url)
 ).start()
 
 try:
-        serveserve_forever()
-)
+    server.serve_forever()
+
+except KeyboardInterrupt:
+    print("\nOrbitWatch stopped.")
+
+finally:
+    server.server_close()
